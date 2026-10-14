@@ -1,0 +1,48 @@
+name: Build Android APK
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch: # Memungkinkan build manual lewat tombol di tab Actions GitHub
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout kode repositori
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # 2. Setup Java JDK
+      - name: Set up Java Development Kit (JDK)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      # 3. Setup Flutter SDK
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      # 4. Ambil dependencies project
+      - name: Install Dependencies
+        run: flutter pub get
+
+      # 5. Build APK Release (split-per-abi untuk APK ringan, atau fat-apk)
+      - name: Build APK Release
+        run: flutter build apk --release
+
+      # 6. Upload file APK ke Artifact GitHub (bisa langsung diunduh)
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cbz-reader-release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 7
